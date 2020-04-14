@@ -85,7 +85,7 @@
         d3.select("#testQuiz")
         .on("click", function() {
             clearSpread()
-            drawSpread(students, getHwMean, getQuizMean)
+            drawSpread(students, getTestMean, getQuizMean)
             setTitle("Test Mean vs Quiz Mean")
         })
     })
