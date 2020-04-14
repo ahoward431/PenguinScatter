@@ -1,0 +1,93 @@
+<html>
+  <body>
+    <div id="spread">
+        <h1></h1>
+        <div id="buttons">
+          <button id="finalHw">Final vs Homework Mean</button>
+          <button id="hwQuiz">Homework Mean vs Quiz Mean</button>
+          <button id="testFinal">Test Mean vs Final</button>
+          <button id="testQuiz">Test Mean vs Quiz Mean</button>
+        </div>
+        <svg></svg>
+    </div>
+    <div id="tooltip" style="position:absolute"></div>
+  </body>
+  <script src="https://d3js.org/d3.v5.min.js"></script>
+  <script>
+    var setTitle = function(msg) {
+      d3.select("#spread h1").text(msg)
+    }
+    var clearSpread = function() {
+        d3.selectAll("#graph circle").remove()
+    }
+    var getFinal = function(student) {return student.final[0].grade}
+    var getHwMean = function(student) {return d3.mean(student.homework.map(function(hw) {return hw.grade}))}
+    var getQuizMean = function(student) {return d3.mean(student.quizes.map(function(quiz) {return quiz.grade}))}
+    var getTestMean = function(student) {return d3.mean(student.test.map(function(test) {return test.grade}))}
+    var drawSpread = function(students, xAccessor, yAccessor) {
+        var height = 300
+        var width = 550
+        var svg = d3.select("#spread svg")
+                    .attr("height", height)
+                    .attr("width", width)
+                    .attr("id","graph")
+        var xScale = d3.scaleLinear()
+                        .domain([d3.min(students, xAccessor), d3.max(students, xAccessor)])
+                        .range([0, width])
+        var yScale = d3.scaleLinear()
+                        .domain([d3.min(students, yAccessor), d3.max(students, yAccessor)])
+                        .range([height, 0])
+        svg.selectAll("circle")
+            .data(students)
+            .enter()
+            .append("circle")
+            .attr("cx", function(student){return xScale(xAccessor(student))})
+            .attr("cy", function(student) {return yScale(yAccessor(student))})
+            .attr("r", 3)
+            .on("mouseover", function(student) {
+               var xPosition = d3.event.pageX
+               var yPosition = d3.event.pageY
+               
+               d3.select("#tooltip")
+                  .style("top", yPosition + "px")
+                  .style("left", xPosition + "px")
+                  .append("img")
+                  .attr("src", "imgs/" + student.picture)
+            })
+            .on("mouseout", function() {
+               d3.select("#tooltip img")
+                  .remove()
+            })
+    }
+      
+    var classPromise = d3.json("classData.json")
+    classPromise.then(function(students) {
+        setTitle("Final vs Homework Mean")
+        drawSpread(students, getFinal, getHwMean)
+        d3.select("#finalHw")
+        .on("click", function() {
+            clearSpread()
+            drawSpread(students, getFinal, getHwMean)
+            setTitle("Final vs Homework Mean")
+        })
+        d3.select("#hwQuiz")
+        .on("click", function() {
+            clearSpread()
+            drawSpread(students, getHwMean, getQuizMean)
+            setTitle("Homework Mean vs Quiz Mean")
+        })
+        d3.select("#testFinal")
+        .on("click", function() {
+            clearSpread()
+            drawSpread(students, getTestMean, getFinal)
+            setTitle("Test Mean vs Final")
+        })
+        d3.select("#testQuiz")
+        .on("click", function() {
+            clearSpread()
+            drawSpread(students, getHwMean, getQuizMean)
+            setTitle("Test Mean vs Quiz Mean")
+        })
+    })
+  </script>
+</html>
